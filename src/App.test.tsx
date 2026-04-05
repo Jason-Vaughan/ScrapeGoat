@@ -5,6 +5,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { Routes, Route } from 'react-router-dom'
 import { useTheme } from './hooks/useTheme'
 import { Layout } from './components/Layout'
+import { AppProvider } from './context/AppContext'
 import { HomePage } from './pages/HomePage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { WizardPage } from './pages/WizardPage'
@@ -16,17 +17,19 @@ import { ExportPage } from './pages/ExportPage'
  */
 function renderApp(initialEntries = ['/']) {
   return render(
-    <MemoryRouter initialEntries={initialEntries}>
-      <Routes>
-        <Route element={<Layout theme="light" onToggleTheme={() => {}} />}>
-          <Route index element={<HomePage />} />
-          <Route path="wizard" element={<WizardPage />} />
-          <Route path="results" element={<ResultsPage />} />
-          <Route path="export" element={<ExportPage />} />
-          <Route path="*" element={<NotFoundPage />} />
-        </Route>
-      </Routes>
-    </MemoryRouter>
+    <AppProvider>
+      <MemoryRouter initialEntries={initialEntries}>
+        <Routes>
+          <Route element={<Layout theme="light" onToggleTheme={() => {}} />}>
+            <Route index element={<HomePage />} />
+            <Route path="wizard" element={<WizardPage />} />
+            <Route path="results" element={<ResultsPage />} />
+            <Route path="export" element={<ExportPage />} />
+            <Route path="*" element={<NotFoundPage />} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    </AppProvider>
   )
 }
 
@@ -36,13 +39,15 @@ function renderApp(initialEntries = ['/']) {
 function ThemeTestApp() {
   const { theme, toggleTheme } = useTheme()
   return (
-    <MemoryRouter>
-      <Routes>
-        <Route element={<Layout theme={theme} onToggleTheme={toggleTheme} />}>
-          <Route index element={<HomePage />} />
-        </Route>
-      </Routes>
-    </MemoryRouter>
+    <AppProvider>
+      <MemoryRouter>
+        <Routes>
+          <Route element={<Layout theme={theme} onToggleTheme={toggleTheme} />}>
+            <Route index element={<HomePage />} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    </AppProvider>
   )
 }
 

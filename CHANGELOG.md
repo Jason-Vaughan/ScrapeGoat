@@ -4,6 +4,20 @@ All notable changes to ScrapeGoat are documented in this file.
 
 ## [Unreleased]
 
+### Added (Chunk 3: PDF Text Extraction)
+- PDF.js integration for client-side text extraction (pdfjs-dist v5, web worker)
+- Functional drag-and-drop zone: accepts .pdf only, max 50MB, highlight on drag-over
+- "Choose File" button fallback via hidden file input
+- Multi-page extraction with page break markers (`--- PAGE BREAK ---`)
+- Progress indicator: "Extracting page X of Y..." with spinner
+- Image-only PDF detection with user-friendly error message
+- Multi-column layout detection with warning message
+- App state context (React Context + useReducer) for storing extracted PDF data
+- Navigation to wizard route after successful extraction
+- File validation: type check, size limit, empty file rejection
+- 25 new unit tests: file validation (6), extractText (8), constants (2), DropZone component (9)
+- DOMMatrix stub in test setup for pdfjs-dist jsdom compatibility
+
 ### Added (Chunk 2: App Shell & Navigation)
 - App shell with Header (logo, nav, dark/light toggle) and Footer (attribution, GitHub link)
 - Layout wrapper with responsive breakpoints (mobile <640, tablet 640-1024, desktop >1024)
