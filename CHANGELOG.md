@@ -4,7 +4,27 @@ All notable changes to ScrapeGoat are documented in this file.
 
 ## [Unreleased]
 
-### Added
+### Added (Chunk 2: App Shell & Navigation)
+- App shell with Header (logo, nav, dark/light toggle) and Footer (attribution, GitHub link)
+- Layout wrapper with responsive breakpoints (mobile <640, tablet 640-1024, desktop >1024)
+- Dark/light mode with system preference detection, localStorage persistence, and toggle
+- Color palette: primary #B91C1C, secondary #1E3A5F, accent #D4A017 with dark mode surface overrides
+- Custom font theme: Inter for headings, system font stack for body
+- React Router with routes: home, wizard, results, export, 404 catch-all
+- Landing page with drop zone shell placeholder
+- 404 page ("This page has been scraped clean.") with Go Home link
+- Wizard, Results, and Export placeholder pages
+- Skip-to-content accessibility link
+- Accessible navigation landmarks (nav, main with id)
+- 14 unit tests covering routing, layout, a11y, dark mode toggle behavior, navigation
+
+### Fixed (Chunk 2 Critic Review)
+- Added `@custom-variant dark` directive for Tailwind v4 class-based dark mode support
+- Added `matchMedia` change listener in `useTheme` to respond to live OS theme changes
+- Added behavioral tests for dark mode toggle (click → class change, label change, localStorage)
+- Added `matchMedia` mock in test setup for jsdom compatibility
+
+### Added (Chunk 1: Repository Scaffolding)
 - Project scaffolding: Vite + React + TypeScript
 - Tailwind CSS 4 with Vite plugin
 - Vitest unit test setup with React Testing Library
