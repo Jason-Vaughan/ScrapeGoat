@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Environment / secrets
+.env
+.env.local
+.env.production.local
+
+# Build output
+dist/
+.cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Private templates (user's own, not shared)
+templates/private/
+
+# Test PDFs (may contain confidential calendar data)
+test-pdfs/
+
+# Temporary
+*.local
+*.log
+
+# TangleClaw / Prawduct (local session state)
+.tangleclaw/
+.prawduct/
