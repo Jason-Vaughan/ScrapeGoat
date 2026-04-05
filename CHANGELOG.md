@@ -4,6 +4,29 @@ All notable changes to ScrapeGoat are documented in this file.
 
 ## [Unreleased]
 
+### Added (Chunk 5: Parser Engine)
+- `ParsedEvent` and `ParseWarning` interfaces matching spec 5.2
+- `parseText(text, template)` main entry point dispatching by structure type
+- Block-based parser (`structure.type: "block"`): splits by `blockDelimiter` regex, extracts name (by position: first_line/after_date/before_date/regex), dates, location, status, custom fields
+- Table-based parser (`structure.type: "table"`): detects header row from `tableHeaders`, determines column positions by character offset, maps columns to event fields
+- List-based parser (`structure.type: "list"`): applies `linePattern` regex per line, named capture groups map directly to event fields
+- Date extraction with named capture groups (`month`, `day`, `year`), 2-digit year support, ambiguity detection (e.g. 1/2/2026)
+- Field extraction by known values scan (case-insensitive) with regex fallback for location and status
+- Custom field extraction via per-field regex patterns
+- SHA-256 event ID generation from name + startDate + location via `crypto.subtle`
+- Post-processing pipeline: deduplication by ID, sort by startDate ascending, date logic validation (moveIn ≤ start ≤ end ≤ moveOut)
+- Page break marker stripping so events spanning PDF pages are parsed as continuous blocks
+- `singleDate` field mapping: assigns same date to both startDate and endDate
+- 62 new unit tests: generateEventId (4), stripPageBreaks (3), extractDates (9), extractEventName (6), extractByKnownOrPattern (5), extractCustomFields (3), block parser (9), table parser (4), list parser (5), deduplicateEvents (2), sortByStartDate (2), validateDateLogic (5), postProcess (1), edge cases (4)
+
+### Fixed (Chunk 5 Critic Review)
+- Validate calendar dates with per-month day limits (e.g., Feb 31 now rejected with warning instead of producing invalid ISO string)
+- Add `safeRegex` wrapper: all user-supplied regex patterns compiled via try/catch to prevent crashes from invalid patterns
+- Add `generateEventId` fallback: uses simple string hash when `crypto.subtle` is unavailable
+- List parser now reports skipped (non-matching) lines as warnings per spec 5.3
+- Guard against zero-length regex matches causing infinite loops in block delimiter scanning
+- 9 new tests for Critic fixes (171 total): isValidDate (2), safeRegex (2), invalid date warning (1), skipped-line warnings (1), invalid regex handling (2), end-to-end dedup (1)
+
 ### Added (Chunk 4: Template System)
 - Zod schema for template profiles (spec 5.1) with full validation of structure, dateFormats, fields
 - Zod schema for community template index (spec 5.3)
