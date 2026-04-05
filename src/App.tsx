@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { useTheme } from './hooks/useTheme'
 import { Layout } from './components/Layout'
 import { HomePage } from './pages/HomePage'
+import { TemplateSelectionPage } from './pages/TemplateSelectionPage'
 import { WizardPage } from './pages/WizardPage'
 import { ResultsPage } from './pages/ResultsPage'
 import { ExportPage } from './pages/ExportPage'
@@ -18,6 +19,7 @@ function App() {
       <Routes>
         <Route element={<Layout theme={theme} onToggleTheme={toggleTheme} />}>
           <Route index element={<HomePage />} />
+          <Route path="templates" element={<TemplateSelectionPage />} />
           <Route path="wizard" element={<WizardPage />} />
           <Route path="results" element={<ResultsPage />} />
           <Route path="export" element={<ExportPage />} />

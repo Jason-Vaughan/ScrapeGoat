@@ -15,7 +15,7 @@ export function HomePage() {
   const handleExtracted = useCallback(
     (result: PdfData) => {
       dispatch({ type: 'SET_PDF_DATA', payload: result })
-      navigate('/wizard')
+      navigate('/templates')
     },
     [dispatch, navigate]
   )

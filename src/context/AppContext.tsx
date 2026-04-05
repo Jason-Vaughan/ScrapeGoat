@@ -1,6 +1,7 @@
 import { createContext, useContext, useReducer } from 'react'
 import type { ReactNode } from 'react'
 import type { ExtractionWarning } from '../services/pdfExtractor'
+import type { ProfileTemplate } from '../schemas/templateSchema'
 
 /** Shape of the extracted PDF data stored in app state. */
 export interface PdfData {
@@ -13,15 +14,19 @@ export interface PdfData {
 /** App-wide state. */
 export interface AppState {
   pdfData: PdfData | null
+  selectedTemplate: ProfileTemplate | null
 }
 
 /** Actions that modify app state. */
 type AppAction =
   | { type: 'SET_PDF_DATA'; payload: PdfData }
   | { type: 'CLEAR_PDF_DATA' }
+  | { type: 'SET_TEMPLATE'; payload: ProfileTemplate }
+  | { type: 'CLEAR_TEMPLATE' }
 
 const initialState: AppState = {
   pdfData: null,
+  selectedTemplate: null,
 }
 
 /**
@@ -33,6 +38,10 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, pdfData: action.payload }
     case 'CLEAR_PDF_DATA':
       return { ...state, pdfData: null }
+    case 'SET_TEMPLATE':
+      return { ...state, selectedTemplate: action.payload }
+    case 'CLEAR_TEMPLATE':
+      return { ...state, selectedTemplate: null }
     default:
       return state
   }

@@ -4,6 +4,46 @@ All notable changes to ScrapeGoat are documented in this file.
 
 ## [Unreleased]
 
+### Added (Chunk 4: Template System)
+- Zod schema for template profiles (spec 5.1) with full validation of structure, dateFormats, fields
+- Zod schema for community template index (spec 5.3)
+- TypeScript types inferred from Zod schemas: `ProfileTemplate`, `SavedTemplate`, `CommunityTemplateEntry`
+- Template CRUD service: save, load, list, delete templates in localStorage
+- Template download as `.json` file with browser download trigger
+- Template import from `.json` file with Zod schema validation
+- Template ID generation from name (URL-safe slug)
+- `markTemplateUsed` for tracking last-used timestamps
+- Community template service: fetch `templates/index.json` from GitHub raw URL
+- Client-side caching of community index in sessionStorage (1-hour TTL)
+- Community template search/filter by name, source, tags, and description (case-insensitive)
+- Template Selection page (Screen 2) with three sections:
+  - Saved templates: radio select, Use Selected, Download, Share, Delete per template
+  - Community templates: search input, tag display, Use button per template
+  - Create new template: CTA linking to wizard
+- "Share to Community" modal: copy template JSON to clipboard + pre-filled GitHub Issue link
+- Import `.json` button on saved templates section
+- PDF info banner showing filename, line count, and page count
+- "Back to start" navigation clearing PDF and template state
+- App state extended: `selectedTemplate` in AppContext with SET_TEMPLATE/CLEAR_TEMPLATE actions
+- Route `/templates` for Template Selection page
+- Navigation flow updated: PDF extraction → `/templates` (was `/wizard`)
+- 61 new unit tests (100 total):
+  - Template schema validation (15): required fields, optional fields, enum values, edge cases
+  - Community index schema (3): valid index, empty templates, missing version
+  - localStorage CRUD (10): save, load, delete, overwrite, corrupted storage, multiple templates
+  - Template ID generation (3): slug conversion, special characters, trimming
+  - File import (4): valid JSON, invalid JSON, schema failure, read error
+  - Community fetch (4): fetch, cache, fetch failure, invalid format
+  - Community search (8): empty query, name, source, tag, description, case-insensitive, multi-match, no match
+  - Template Selection page (14): PDF banner, headings, saved templates display, selection, navigation, delete with confirm, share modal
+
+### Fixed (Chunk 4 Critic Review)
+- Validate community template JSON with Zod schema before dispatching to app state (was accepting unvalidated fetch responses)
+- Handle localStorage quota exceeded in saveTemplate with descriptive error
+- Add delete confirmation dialog before removing saved templates
+- Add `aria-modal="true"`, Escape key dismiss, and auto-focus on share modal
+- Handle clipboard API failure in copy-to-clipboard with fallback alert
+
 ### Added (Chunk 3: PDF Text Extraction)
 - PDF.js integration for client-side text extraction (pdfjs-dist v5, web worker)
 - Functional drag-and-drop zone: accepts .pdf only, max 50MB, highlight on drag-over
