@@ -19,6 +19,12 @@ All notable changes to ScrapeGoat are documented in this file.
 - GitHub pull request template
 - Community template index (`templates/index.json`)
 - `.gitignore` per spec (excludes secrets, test PDFs, private templates)
+- Placeholder PNG icons for all favicon/PWA sizes (16, 32, 180, 192, 512)
+
+### Fixed (Critic Review)
+- Twitter Card meta tags: changed `property` to `name` attribute per spec
+- Added missing placeholder icons to prevent 404s from index.html/manifest.json references
+- Registered port 5173 with TangleClaw PortHub
 
 ### Changed
 - Revised 11-chunk build plan (v1 → v2): audited full spec, identified 20 gaps, slotted all into existing chunks
