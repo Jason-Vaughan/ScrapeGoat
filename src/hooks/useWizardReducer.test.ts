@@ -380,6 +380,73 @@ describe('wizardReducer', () => {
     })
   })
 
+  describe('elapsed time tracking', () => {
+    it('SET_ELAPSED updates elapsedSeconds', () => {
+      const state = applyActions([{ type: 'SET_ELAPSED', payload: 30 }])
+      expect(state.elapsedSeconds).toBe(30)
+    })
+
+    it('ANALYSIS_START resets elapsedSeconds to 0', () => {
+      const state = applyActions([
+        { type: 'SET_ELAPSED', payload: 45 },
+        { type: 'ANALYSIS_START' },
+      ])
+      expect(state.elapsedSeconds).toBe(0)
+    })
+
+    it('RETRY resets elapsedSeconds to 0', () => {
+      const state = applyActions([
+        { type: 'SET_ELAPSED', payload: 60 },
+        { type: 'RETRY' },
+      ])
+      expect(state.elapsedSeconds).toBe(0)
+    })
+  })
+
+  describe('suggested template name', () => {
+    it('SET_SUGGESTED_NAME stores the suggestion', () => {
+      const state = applyActions([
+        { type: 'SET_SUGGESTED_NAME', payload: 'Convention Calendar' },
+      ])
+      expect(state.suggestedTemplateName).toBe('Convention Calendar')
+    })
+
+    it('initial state has null suggestedTemplateName', () => {
+      const state = createInitialState()
+      expect(state.suggestedTemplateName).toBeNull()
+    })
+
+    it('START_OVER clears suggestedTemplateName', () => {
+      const state = applyActions([
+        { type: 'SET_SUGGESTED_NAME', payload: 'Test' },
+        { type: 'START_OVER' },
+      ])
+      expect(state.suggestedTemplateName).toBeNull()
+    })
+  })
+
+  describe('new error types', () => {
+    it('accepts unrecognized_format error', () => {
+      const state = applyActions([
+        {
+          type: 'ANALYSIS_FAILURE',
+          payload: { type: 'unrecognized_format', message: 'Not calendar data' },
+        },
+      ])
+      expect(state.error?.type).toBe('unrecognized_format')
+    })
+
+    it('accepts timeout error', () => {
+      const state = applyActions([
+        {
+          type: 'ANALYSIS_FAILURE',
+          payload: { type: 'timeout', message: 'Request timed out' },
+        },
+      ])
+      expect(state.error?.type).toBe('timeout')
+    })
+  })
+
   describe('constants', () => {
     it('QUIZ_STEPS has 6 entries', () => {
       expect(QUIZ_STEPS).toHaveLength(6)

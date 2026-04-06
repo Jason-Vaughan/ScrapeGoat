@@ -26,6 +26,18 @@ const ERROR_MESSAGES: Record<
       'The AI service is temporarily down for maintenance.',
     note: 'You can still use saved templates or browse community templates while we work on getting things back.',
   },
+  unrecognized_format: {
+    title: 'This doesn\u2019t look like a calendar',
+    message:
+      'The AI couldn\u2019t find calendar or schedule data in this PDF. Make sure the PDF contains dates and events.',
+    note: 'Try a different PDF, or use a saved template if you already have one for this format.',
+  },
+  timeout: {
+    title: 'Request timed out',
+    message:
+      'The AI took too long to respond. This can happen when the service is busy.',
+    note: 'Your saved templates and community templates still work. You can try again or use an existing template.',
+  },
   generic: {
     title: "We couldn't fully parse this calendar",
     message:

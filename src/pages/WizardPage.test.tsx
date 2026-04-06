@@ -6,8 +6,8 @@ import { AppProvider, useAppContext } from '../context/AppContext'
 import { useEffect } from 'react'
 import type { PdfData } from '../context/AppContext'
 
-// Mock the AI service to avoid real delays
-vi.mock('../services/mockAiService', () => ({
+// Mock the real AI service
+vi.mock('../services/aiService', () => ({
   analyzeDocument: vi.fn().mockResolvedValue({
     documentStructure: {
       options: [
@@ -43,8 +43,27 @@ vi.mock('../services/mockAiService', () => ({
     estimatedEventCount: 10,
     detectedTimezone: 'America/New_York',
     notes: null,
+    suggestedTemplateName: 'Tech Conference Calendar',
   }),
   getCorrectionSuggestions: vi.fn().mockResolvedValue([]),
+  AiServiceError: class AiServiceError extends Error {
+    errorType: string
+    constructor(message: string, errorType: string) {
+      super(message)
+      this.errorType = errorType
+    }
+  },
+}))
+
+// Mock Turnstile hook — always provide a token so analysis proceeds
+vi.mock('../hooks/useTurnstile', () => ({
+  useTurnstile: () => ({
+    token: 'mock-turnstile-token',
+    reset: vi.fn(),
+    containerRef: { current: null },
+    ready: true,
+    configured: false, // No Turnstile widget in tests
+  }),
 }))
 
 // Mock navigate

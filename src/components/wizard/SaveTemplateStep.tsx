@@ -1,5 +1,6 @@
 interface SaveTemplateStepProps {
   templateName: string
+  suggestedName?: string | null
   saveOptions: { browser: boolean; download: boolean; share: boolean }
   eventCount: number
   onNameChange: (name: string) => void
@@ -10,9 +11,11 @@ interface SaveTemplateStepProps {
 /**
  * Screen 3i: Save template.
  * User provides a name and selects save options (browser, download, share).
+ * AI-suggested name is offered when available.
  */
 export function SaveTemplateStep({
   templateName,
+  suggestedName,
   saveOptions,
   eventCount,
   onNameChange,
@@ -45,6 +48,18 @@ export function SaveTemplateStep({
           autoFocus
         />
       </label>
+
+      {/* AI-suggested name */}
+      {suggestedName && !templateName && (
+        <button
+          type="button"
+          onClick={() => onNameChange(suggestedName)}
+          className="mt-2 text-sm text-primary hover:underline"
+          data-testid="suggested-name-button"
+        >
+          Use suggested: &ldquo;{suggestedName}&rdquo;
+        </button>
+      )}
 
       {/* Save options */}
       <fieldset className="mt-6">

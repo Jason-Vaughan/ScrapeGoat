@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppContext } from '../context/AppContext'
-import { useWizardReducer, QUIZ_STEPS } from '../hooks/useWizardReducer'
+import { useWizardReducer } from '../hooks/useWizardReducer'
 import type { WizardStepId, FlaggedEvent, CorrectionAlternative } from '../hooks/useWizardReducer'
-import { analyzeDocument } from '../services/mockAiService'
+import { analyzeDocument, AiServiceError } from '../services/aiService'
 import { buildTemplate } from '../services/templateBuilder'
 import { saveTemplate, generateTemplateId, downloadTemplate } from '../services/templateStorage'
+import { useTurnstile } from '../hooks/useTurnstile'
 
 // Wizard UI components
 import { WizardProgress } from '../components/wizard/WizardProgress'
@@ -22,6 +23,7 @@ import { ReviewTestStep } from '../components/wizard/ReviewTestStep'
 import { CorrectionStep } from '../components/wizard/CorrectionStep'
 import { SaveTemplateStep } from '../components/wizard/SaveTemplateStep'
 import { FailurePage } from '../components/wizard/FailurePage'
+import { Turnstile } from '../components/Turnstile'
 
 /**
  * Wizard page orchestrator (Screens 3a–3j).
@@ -33,6 +35,8 @@ export function WizardPage() {
   const navigate = useNavigate()
   const [wiz, wizDispatch] = useWizardReducer()
   const [analyzeKey, setAnalyzeKey] = useState(0)
+  const turnstile = useTurnstile()
+  const abortRef = useRef<AbortController | null>(null)
 
   // Guard: redirect to home if no PDF data
   useEffect(() => {
@@ -44,14 +48,41 @@ export function WizardPage() {
   // Kick off AI analysis on mount and on retry
   useEffect(() => {
     if (!appState.pdfData) return
+
+    // If Turnstile is configured but no token yet, wait
+    if (turnstile.configured && !turnstile.token) return
+
+    // Abort any previous in-flight request
+    abortRef.current?.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
+
     let cancelled = false
 
     async function analyze() {
       wizDispatch({ type: 'ANALYSIS_START' })
       try {
-        const analysis = await analyzeDocument(appState.pdfData!.text)
+        const token = turnstile.token || ''
+        const analysis = await analyzeDocument(
+          appState.pdfData!.text,
+          token,
+          {
+            onTick: (elapsed) => {
+              if (!cancelled) {
+                wizDispatch({ type: 'SET_ELAPSED', payload: elapsed })
+              }
+            },
+            signal: controller.signal,
+          }
+        )
         if (!cancelled) {
           wizDispatch({ type: 'ANALYSIS_SUCCESS', payload: analysis })
+
+          // Store AI-suggested template name if provided
+          if (analysis.suggestedTemplateName) {
+            wizDispatch({ type: 'SET_SUGGESTED_NAME', payload: analysis.suggestedTemplateName })
+          }
+
           // Pre-select high-confidence locations and status codes
           const locations = analysis.locations.candidates
             .filter((c) => c.confidence === 'high')
@@ -65,18 +96,23 @@ export function WizardPage() {
           if (statusCodes.length > 0) {
             wizDispatch({ type: 'SET_STATUS_CODES', payload: statusCodes })
           }
+
+          // Reset Turnstile for the next request (corrections)
+          turnstile.reset()
         }
       } catch (err) {
         if (!cancelled) {
           const errorType =
-            (err as Error & { errorType?: string }).errorType ?? 'generic'
+            err instanceof AiServiceError ? err.errorType : 'generic'
           wizDispatch({
             type: 'ANALYSIS_FAILURE',
             payload: {
-              type: errorType as 'rate_limited' | 'api_down' | 'generic',
+              type: errorType as typeof errorType,
               message: (err as Error).message,
             },
           })
+          // Reset Turnstile so user can retry
+          turnstile.reset()
         }
       }
     }
@@ -84,9 +120,10 @@ export function WizardPage() {
     analyze()
     return () => {
       cancelled = true
+      controller.abort()
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [appState.pdfData, wizDispatch, analyzeKey])
+  }, [appState.pdfData, wizDispatch, analyzeKey, turnstile.token])
 
   // --- Callbacks ---
 
@@ -113,8 +150,9 @@ export function WizardPage() {
 
   const handleRetry = useCallback(() => {
     wizDispatch({ type: 'RETRY' })
+    turnstile.reset()
     setAnalyzeKey((k) => k + 1)
-  }, [wizDispatch])
+  }, [wizDispatch, turnstile])
 
   const handleStartOver = useCallback(() => {
     appDispatch({ type: 'CLEAR_PDF_DATA' })
@@ -192,6 +230,19 @@ export function WizardPage() {
     navigate,
   ])
 
+  /** Cancel the in-flight analysis request. */
+  const handleCancelRequest = useCallback(() => {
+    // Abort the network request
+    abortRef.current?.abort()
+    wizDispatch({
+      type: 'ANALYSIS_FAILURE',
+      payload: {
+        type: 'timeout',
+        message: 'You cancelled the request. You can try again or use a saved template.',
+      },
+    })
+  }, [wizDispatch])
+
   // --- Render helpers ---
 
   /** Whether the "Next" button should be enabled for the current step. */
@@ -225,6 +276,11 @@ export function WizardPage() {
         onLeave={handleLeave}
       />
 
+      {/* Turnstile widget — shown while waiting for token on loading step */}
+      {wiz.currentStep === 'loading' && turnstile.configured && !turnstile.token && (
+        <Turnstile containerRef={turnstile.containerRef} configured={turnstile.configured} />
+      )}
+
       {/* Step content */}
       {renderStep(wiz.currentStep)}
     </div>
@@ -236,7 +292,12 @@ export function WizardPage() {
   function renderStep(step: WizardStepId) {
     // Loading screen
     if (step === 'loading') {
-      return <WizardLoadingScreen />
+      return (
+        <WizardLoadingScreen
+          elapsedSeconds={wiz.elapsedSeconds}
+          onCancel={handleCancelRequest}
+        />
+      )
     }
 
     // Failure page
@@ -257,6 +318,7 @@ export function WizardPage() {
       return (
         <SaveTemplateStep
           templateName={wiz.templateName}
+          suggestedName={wiz.suggestedTemplateName}
           saveOptions={wiz.saveOptions}
           eventCount={wiz.testParseResults.length}
           onNameChange={(name) =>
@@ -295,6 +357,8 @@ export function WizardPage() {
           flaggedEvents={wiz.flaggedEvents}
           currentIndex={wiz.currentFlaggedIndex}
           testResults={wiz.testParseResults}
+          turnstileToken={turnstile.token}
+          onResetTurnstile={turnstile.reset}
           onSetCorrections={handleSetCorrections}
           onResolve={handleResolve}
           onAdvance={handleAdvance}

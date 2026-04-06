@@ -44,6 +44,7 @@ export interface AiAnalysis {
   estimatedEventCount: number
   detectedTimezone: string | null
   notes: string | null
+  suggestedTemplateName?: string | null
 }
 
 /** Correction alternative offered by AI for a flagged field. */
@@ -91,7 +92,7 @@ export interface FlaggedEvent {
 
 /** Error types for graceful degradation. */
 export interface WizardError {
-  type: 'rate_limited' | 'api_down' | 'generic'
+  type: 'rate_limited' | 'api_down' | 'unrecognized_format' | 'timeout' | 'generic'
   message: string
 }
 
@@ -102,11 +103,13 @@ export interface WizardState {
   answers: WizardAnswers
   loading: boolean
   loadingTip: string
+  elapsedSeconds: number
   error: WizardError | null
   testParseResults: ParsedEvent[]
   flaggedEvents: FlaggedEvent[]
   currentFlaggedIndex: number
   templateName: string
+  suggestedTemplateName: string | null
   saveOptions: { browser: boolean; download: boolean; share: boolean }
   cancelDialogOpen: boolean
 }
@@ -173,6 +176,8 @@ export type WizardAction =
   | { type: 'SET_CORRECTIONS'; payload: { eventId: string; corrections: CorrectionAlternative[] } }
   | { type: 'RESOLVE_FLAG'; payload: string }
   | { type: 'ADVANCE_FLAGGED' }
+  | { type: 'SET_ELAPSED'; payload: number }
+  | { type: 'SET_SUGGESTED_NAME'; payload: string }
   | { type: 'TOGGLE_CANCEL_DIALOG' }
   | { type: 'RETRY' }
   | { type: 'START_OVER' }
@@ -240,11 +245,13 @@ export function createInitialState(): WizardState {
     answers: { ...INITIAL_ANSWERS },
     loading: true,
     loadingTip: LOADING_TIPS[0],
+    elapsedSeconds: 0,
     error: null,
     testParseResults: [],
     flaggedEvents: [],
     currentFlaggedIndex: 0,
     templateName: '',
+    suggestedTemplateName: null,
     saveOptions: { browser: true, download: false, share: false },
     cancelDialogOpen: false,
   }
@@ -265,6 +272,7 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
         ...state,
         currentStep: 'loading',
         loading: true,
+        elapsedSeconds: 0,
         error: null,
         loadingTip: LOADING_TIPS[0],
       }
@@ -399,6 +407,12 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
       return { ...state, currentFlaggedIndex: nextUnresolved }
     }
 
+    case 'SET_ELAPSED':
+      return { ...state, elapsedSeconds: action.payload }
+
+    case 'SET_SUGGESTED_NAME':
+      return { ...state, suggestedTemplateName: action.payload }
+
     case 'TOGGLE_CANCEL_DIALOG':
       return { ...state, cancelDialogOpen: !state.cancelDialogOpen }
 
@@ -408,6 +422,7 @@ export function wizardReducer(state: WizardState, action: WizardAction): WizardS
         currentStep: 'loading',
         loading: true,
         error: null,
+        elapsedSeconds: 0,
         loadingTip: LOADING_TIPS[0],
       }
 

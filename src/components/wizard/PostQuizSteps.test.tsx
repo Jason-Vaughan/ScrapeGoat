@@ -5,6 +5,11 @@ import { FailurePage } from './FailurePage'
 import { CorrectionStep } from './CorrectionStep'
 import type { FlaggedEvent } from '../../hooks/useWizardReducer'
 
+// Mock the real AI service
+vi.mock('../../services/aiService', () => ({
+  getCorrectionSuggestions: vi.fn().mockResolvedValue([]),
+}))
+
 describe('SaveTemplateStep', () => {
   const defaultProps = {
     templateName: '',
@@ -199,6 +204,8 @@ describe('CorrectionStep', () => {
         flaggedEvents={flagged}
         currentIndex={0}
         testResults={testResults}
+        turnstileToken="mock-token"
+        onResetTurnstile={vi.fn()}
         onSetCorrections={vi.fn()}
         onResolve={vi.fn()}
         onAdvance={vi.fn()}
@@ -213,6 +220,8 @@ describe('CorrectionStep', () => {
         flaggedEvents={flagged}
         currentIndex={0}
         testResults={testResults}
+        turnstileToken="mock-token"
+        onResetTurnstile={vi.fn()}
         onSetCorrections={vi.fn()}
         onResolve={vi.fn()}
         onAdvance={vi.fn()}
@@ -230,6 +239,8 @@ describe('CorrectionStep', () => {
         flaggedEvents={flagged}
         currentIndex={0}
         testResults={testResults}
+        turnstileToken="mock-token"
+        onResetTurnstile={vi.fn()}
         onSetCorrections={vi.fn()}
         onResolve={vi.fn()}
         onAdvance={vi.fn()}
@@ -244,6 +255,8 @@ describe('CorrectionStep', () => {
         flaggedEvents={flagged}
         currentIndex={0}
         testResults={testResults}
+        turnstileToken="mock-token"
+        onResetTurnstile={vi.fn()}
         onSetCorrections={vi.fn()}
         onResolve={vi.fn()}
         onAdvance={vi.fn()}
@@ -262,6 +275,8 @@ describe('CorrectionStep', () => {
         flaggedEvents={exhausted}
         currentIndex={0}
         testResults={testResults}
+        turnstileToken="mock-token"
+        onResetTurnstile={vi.fn()}
         onSetCorrections={vi.fn()}
         onResolve={vi.fn()}
         onAdvance={vi.fn()}
@@ -278,6 +293,8 @@ describe('CorrectionStep', () => {
         flaggedEvents={flagged}
         currentIndex={0}
         testResults={testResults}
+        turnstileToken="mock-token"
+        onResetTurnstile={vi.fn()}
         onSetCorrections={vi.fn()}
         onResolve={onResolve}
         onAdvance={onAdvance}
@@ -294,6 +311,8 @@ describe('CorrectionStep', () => {
         flaggedEvents={[]}
         currentIndex={0}
         testResults={testResults}
+        turnstileToken="mock-token"
+        onResetTurnstile={vi.fn()}
         onSetCorrections={vi.fn()}
         onResolve={vi.fn()}
         onAdvance={vi.fn()}

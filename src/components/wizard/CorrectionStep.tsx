@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { getCorrectionSuggestions } from '../../services/mockAiService'
+import { getCorrectionSuggestions } from '../../services/aiService'
 import type { ParsedEvent } from '../../services/parser'
 import type { FlaggedEvent, CorrectionAlternative } from '../../hooks/useWizardReducer'
 import { MAX_CORRECTION_ROUNDS } from '../../hooks/useWizardReducer'
@@ -16,6 +16,8 @@ interface CorrectionStepProps {
   flaggedEvents: FlaggedEvent[]
   currentIndex: number
   testResults: ParsedEvent[]
+  turnstileToken: string | null
+  onResetTurnstile: () => void
   onSetCorrections: (eventId: string, corrections: CorrectionAlternative[]) => void
   onResolve: (eventId: string) => void
   onAdvance: () => void
@@ -29,6 +31,8 @@ export function CorrectionStep({
   flaggedEvents,
   currentIndex,
   testResults,
+  turnstileToken,
+  onResetTurnstile,
   onSetCorrections,
   onResolve,
   onAdvance,
@@ -55,6 +59,8 @@ export function CorrectionStep({
     <CorrectionFlow
       flagged={flagged}
       event={event}
+      turnstileToken={turnstileToken}
+      onResetTurnstile={onResetTurnstile}
       onSetCorrections={onSetCorrections}
       onResolve={onResolve}
       onAdvance={onAdvance}
@@ -65,6 +71,8 @@ export function CorrectionStep({
 interface CorrectionFlowProps {
   flagged: FlaggedEvent
   event: ParsedEvent | undefined
+  turnstileToken: string | null
+  onResetTurnstile: () => void
   onSetCorrections: (eventId: string, corrections: CorrectionAlternative[]) => void
   onResolve: (eventId: string) => void
   onAdvance: () => void
@@ -76,6 +84,8 @@ interface CorrectionFlowProps {
 function CorrectionFlow({
   flagged,
   event,
+  turnstileToken,
+  onResetTurnstile,
   onSetCorrections,
   onResolve,
   onAdvance,
@@ -83,6 +93,7 @@ function CorrectionFlow({
   const [phase, setPhase] = useState<'issues' | 'alternatives'>('issues')
   const [selectedIssues, setSelectedIssues] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
+  const [fetchError, setFetchError] = useState(false)
   const [selectedAlts, setSelectedAlts] = useState<Record<string, string>>({})
 
   /** Reset state when flagged event changes. */
@@ -90,6 +101,7 @@ function CorrectionFlow({
     setPhase('issues')
     setSelectedIssues([])
     setSelectedAlts({})
+    setFetchError(false)
   }, [flagged.eventId])
 
   /** Toggle an issue field. */
@@ -107,18 +119,20 @@ function CorrectionFlow({
     try {
       const corrections = await getCorrectionSuggestions(
         event?.rawText ?? '',
-        selectedIssues
+        selectedIssues,
+        turnstileToken || ''
       )
       onSetCorrections(flagged.eventId, corrections)
       setPhase('alternatives')
+      // Reset Turnstile for next correction request
+      onResetTurnstile()
     } catch {
-      // On error, just resolve and skip
-      onResolve(flagged.eventId)
-      onAdvance()
+      // Show error briefly, then resolve and skip
+      setFetchError(true)
     } finally {
       setLoading(false)
     }
-  }, [event, selectedIssues, flagged.eventId, onSetCorrections, onResolve, onAdvance])
+  }, [event, selectedIssues, flagged.eventId, turnstileToken, onResetTurnstile, onSetCorrections, onResolve, onAdvance])
 
   /** Apply selected alternatives and advance. */
   function handleApply() {
@@ -131,6 +145,29 @@ function CorrectionFlow({
       <div className="flex flex-col items-center py-16" role="status">
         <div className="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-surface-dim border-t-primary" />
         <p className="text-on-surface-muted">Finding alternatives...</p>
+      </div>
+    )
+  }
+
+  if (fetchError) {
+    return (
+      <div className="py-8 text-center">
+        <p className="text-on-surface">
+          Couldn&apos;t get alternatives for this event.
+        </p>
+        <p className="mt-2 text-sm text-on-surface-muted">
+          The AI service didn&apos;t respond. This event will be skipped.
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            onResolve(flagged.eventId)
+            onAdvance()
+          }}
+          className="mt-4 rounded-lg bg-primary px-6 py-2 text-sm font-medium text-white"
+        >
+          Continue
+        </button>
       </div>
     )
   }

@@ -4,6 +4,29 @@ All notable changes to ScrapeGoat are documented in this file.
 
 ## [Unreleased]
 
+### Added (Chunk 10: Real Gemini Integration)
+- Real AI service (`aiService.ts`): replaces mock service, calls Cloudflare Worker proxy at `/api/analyze` for both `initial_analysis` and `correction` actions
+- Zod response validation (`aiResponseSchema.ts`): validates all Gemini responses against strict schemas — `aiAnalysisSchema` for initial analysis, `correctionResponseSchema` for corrections, `unrecognizedFormatSchema` for non-calendar input detection
+- `AiServiceError` class with typed error codes: `rate_limited`, `api_down`, `unrecognized_format`, `timeout`, `generic` — maps HTTP status codes (429, 502, 503) to appropriate types
+- Turnstile integration: `useTurnstile` hook loads Cloudflare Turnstile script dynamically, renders widget, manages token lifecycle (obtain → send → reset); `Turnstile` component renders the verification widget on the wizard loading screen
+- `VITE_TURNSTILE_SITE_KEY` environment variable added to `.env.example`
+- Timeout UX on `WizardLoadingScreen`: elapsed-time tracking via `onTick` callback, progressive messages at 30s ("This is taking longer than usual..."), 45s ("Still working on it..." + Cancel button), 60s (auto-timeout with retry option)
+- AI-suggested template name: `suggestedTemplateName` field in analysis response, shown as "Use suggested" button on `SaveTemplateStep` when user hasn't typed a name
+- `unrecognized_format` error handling: Gemini returns `{"error": "unrecognized_format"}` for non-calendar input → wizard shows "This doesn't look like a calendar" failure page
+- Failure page messages for new error types: `unrecognized_format` ("This doesn't look like a calendar") and `timeout` ("Request timed out")
+- Wizard reducer extended: `SET_ELAPSED`, `SET_SUGGESTED_NAME` actions; `elapsedSeconds` and `suggestedTemplateName` state fields; `ANALYSIS_START` and `RETRY` reset elapsed timer
+- `WizardPage` orchestrator updated: passes Turnstile token to AI service calls, tracks elapsed time during analysis, stores suggested template name, resets Turnstile after each request
+- `CorrectionStep` updated: receives Turnstile token as prop, passes to real AI service for correction requests, resets token after each correction call
+- 55 new tests: 10 AI response schema validation, 13 AI service (fetch mocking, error mapping, timeout, tick callback), 7 loading screen timeout UX, 6 save template suggested name, 3 Turnstile hook, 8 wizard reducer (elapsed, suggested name, new error types), 8 updated existing tests for new CorrectionStep props (total project: 515)
+
+### Fixed (Chunk 10 Critic Review)
+- Cancel button now aborts the in-flight fetch via AbortSignal (was dispatching failure UI but leaving the network request running, consuming a rate-limit slot)
+- AI service accepts `AbortSignal` via `AiCallOptions.signal` — linked to internal `AbortController`, cleanup on unmount also aborts
+- `AiAnalysis` interface now includes `suggestedTemplateName?: string | null` (was missing from the manual type despite being in the Zod schema, causing type divergence)
+- `CorrectionStep` now shows error feedback ("Couldn't get alternatives") when AI fails instead of silently resolving and skipping the event
+- `.env.example` documents Turnstile test keys for local development
+- Added Playwright E2E tests: wizard flow with network-level Gemini mock (PDF upload → AI analysis → first quiz step), unrecognized_format error path
+
 ### Added (Chunk 9: Cloudflare Worker — AI Proxy)
 - Cloudflare Worker (`functions/analyze.js`): single `POST /api/analyze` endpoint proxying calendar-text analysis to Gemini 2.0 Flash
 - Defense Layer 1 — Origin validation: rejects requests without a whitelisted `Origin` header (scrapegoat.pages.dev, scrapegoat.io, localhost:3000)
