@@ -105,7 +105,8 @@ describe('Routing', () => {
 
   it('renders export page at /export', () => {
     renderApp(['/export'])
-    expect(screen.getByRole('heading', { name: /export calendar/i })).toBeInTheDocument()
+    // With no events in state, shows empty state message
+    expect(screen.getByText('No events selected for export.')).toBeInTheDocument()
   })
 
   it('renders 404 for unknown routes', () => {

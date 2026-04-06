@@ -4,6 +4,24 @@ All notable changes to ScrapeGoat are documented in this file.
 
 ## [Unreleased]
 
+### Added (Chunk 7: Export Engine)
+- ICS export generator: RFC 5545 compliant with VTIMEZONE, VALUE=DATE, DTEND exclusive, line folding at 75 octets, CRLF endings, TEXT escaping (commas, semicolons, backslashes)
+- ICS multi-phase support: separate VEVENTs for Move-In, Event, Move-Out with phase toggle pills
+- ICS STATUS mapping: Confirmed→CONFIRMED, Tentative→TENTATIVE, Canceled→CANCELLED
+- ICS UID format: SHA256 event ID + phase suffix + `@scrapegoat`
+- ICS date fallback: events without startDate fall back to moveInDate or moveOutDate
+- CSV export generator: header row, all fields quoted, UTF-8 BOM for Excel, delimiter choice (comma/tab/semicolon), user-selectable columns
+- JSON export generator: matches spec schema, null fields preserved, 2-space pretty-print, optional rawText per event, ISO 8601 timestamps
+- Markdown export generator: GFM table or list layout, human-readable dates (Mon DD), header with template name, footer with event count and attribution link
+- Export screen (Screen 5): four format cards (ICS/CSV/JSON/MD), per-format options panels, live preview of first 20 lines, client-side download with `scrapegoat-export-YYYY-MM-DD.{ext}` naming
+- Export timezone selector with 14 common IANA timezones
+- 85 new tests: 24 ICS, 12 CSV, 13 JSON, 15 MD, 21 ExportPage UI
+
+### Fixed (Chunk 7 Critic Review)
+- ICS TEXT values now escape semicolons, commas, and backslashes per RFC 5545 Section 3.3.11
+- Events with no startDate no longer silently dropped in ICS single-phase mode — falls back to moveInDate or moveOutDate
+- MD footer pluralization: "1 event" instead of "1 events"
+
 ### Added (Chunk 6: Results UI)
 - Parsed Results screen (Screen 4) with event table, checkboxes for selection, and responsive card layout on mobile
 - Column toggle pills: Start, End, Move-In, Move-Out, Status — click to show/hide columns
