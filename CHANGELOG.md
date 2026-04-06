@@ -4,6 +4,31 @@ All notable changes to ScrapeGoat are documented in this file.
 
 ## [Unreleased]
 
+### Added (Chunk 8: AI Wizard Mock)
+- Wizard state machine (`useWizardReducer`): full step navigation, answer collection, correction flow, cancel dialog, retry/start-over, with 6 quiz steps + review + correction + save + failure
+- Mock AI service (`mockAiService`): `analyzeDocument()` returns structure/date/location/status/name analysis with text-based heuristics; `getCorrectionSuggestions()` returns field alternatives; `__simulateError` param for testing graceful degradation
+- Template builder (`templateBuilder`): assembles wizard answers + AI analysis into a Zod-validated `ProfileTemplate` with sensible defaults for skipped steps
+- Wizard progress bar: "Step X of 6" with filled segments for quiz steps 3a-3f
+- Wizard nav bar: Back / Skip / Next buttons with step-aware enabled states
+- Wizard loading screen: spinner with rotating tip messages ("Scanning document structure...", etc.)
+- Cancel confirmation dialog: "Your progress will be lost" with Stay/Leave buttons
+- Screen 3a — Document Structure: radio select (block/table/list) with PDF source snippets
+- Screen 3b — Date Format: radio select with detected patterns, example dates, ambiguous date highlighting (day ≤ 12)
+- Screen 3c — Timezone: AI-detected badge, browser timezone, common IANA list, searchable dropdown using `Intl.supportedValuesOf`
+- Screen 3d — Locations: checkbox multi-select with confidence badges (high/medium/low), source snippets, high-confidence pre-selected
+- Screen 3e — Status Codes: checkbox multi-select with same confidence badge pattern
+- Screen 3f — Event Names: radio select for position (first_line/after_date/before_date/regex) with AI-detected examples
+- Screen 3g — Review & Test: runs live test parse, shows event table with pass/fail per event, flag/unflag toggle, "Fix Flagged" or "Looks Good" actions
+- Screen 3h — Correction Flow: two-phase per event (what's wrong checkboxes → AI alternative radios), skip option, exhausted view after 3 rounds
+- Screen 3i — Save Template: name input, save-to-browser/download/share checkboxes, success header with event count
+- Screen 3j — Failure Page: graceful degradation messages for rate_limited/api_down/generic errors, "what still works" note, bug report form with GitHub Issue link, optional PDF attachment with privacy warning
+- WizardPage orchestrator: guards for missing PDF data, kicks off AI analysis on mount, pre-selects high-confidence candidates, wires all step components with proper state/dispatch
+- 100 new tests: 31 reducer, 12 mock AI, 9 template builder, 21 quiz steps, 24 post-quiz steps, 5 WizardPage integration (total project: 394)
+
+### Fixed (Chunk 8 Critic Review)
+- Retry button now properly re-triggers AI analysis via `analyzeKey` state (was stuck on loading screen because useEffect dependency didn't change)
+- ADVANCE_FLAGGED now skips already-resolved events using `findIndex` instead of blindly incrementing (could land on resolved event)
+
 ### Added (Chunk 7: Export Engine)
 - ICS export generator: RFC 5545 compliant with VTIMEZONE, VALUE=DATE, DTEND exclusive, line folding at 75 octets, CRLF endings, TEXT escaping (commas, semicolons, backslashes)
 - ICS multi-phase support: separate VEVENTs for Move-In, Event, Move-Out with phase toggle pills

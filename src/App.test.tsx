@@ -92,9 +92,10 @@ describe('Home page', () => {
 })
 
 describe('Routing', () => {
-  it('renders wizard page at /wizard', () => {
+  it('redirects wizard page to home when no PDF data', () => {
     renderApp(['/wizard'])
-    expect(screen.getByRole('heading', { name: /configure extraction/i })).toBeInTheDocument()
+    // WizardPage redirects to / when state is empty, so we see the home page
+    expect(screen.getByRole('heading', { name: /scrapegoat/i })).toBeInTheDocument()
   })
 
   it('redirects results page to home when no PDF data is loaded', () => {
@@ -161,8 +162,8 @@ describe('Dark mode toggle', () => {
 describe('Navigation', () => {
   it('Home nav link navigates to home page', async () => {
     const user = userEvent.setup()
-    renderApp(['/wizard'])
-    expect(screen.getByRole('heading', { name: /configure extraction/i })).toBeInTheDocument()
+    renderApp(['/'])
+    expect(screen.getByRole('heading', { name: /scrapegoat/i })).toBeInTheDocument()
 
     await user.click(screen.getByRole('link', { name: /^home$/i }))
     expect(screen.getByRole('heading', { name: /scrapegoat/i })).toBeInTheDocument()
