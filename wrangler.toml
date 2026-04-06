@@ -1,0 +1,18 @@
+name = "scrapegoat-api"
+main = "functions/analyze.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+# Non-secret env vars go here (none currently)
+
+# KV namespace binding — create with:
+#   wrangler kv:namespace create "RATE_LIMIT_KV"
+# Then paste the id below.
+[[kv_namespaces]]
+binding = "KV"
+id = ""          # fill after `wrangler kv:namespace create`
+preview_id = ""  # fill after `wrangler kv:namespace create --preview`
+
+# Secrets (set via `wrangler secret put <NAME>`):
+#   GEMINI_API_KEY
+#   TURNSTILE_SECRET_KEY

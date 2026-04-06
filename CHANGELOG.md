@@ -4,6 +4,30 @@ All notable changes to ScrapeGoat are documented in this file.
 
 ## [Unreleased]
 
+### Added (Chunk 9: Cloudflare Worker — AI Proxy)
+- Cloudflare Worker (`functions/analyze.js`): single `POST /api/analyze` endpoint proxying calendar-text analysis to Gemini 2.0 Flash
+- Defense Layer 1 — Origin validation: rejects requests without a whitelisted `Origin` header (scrapegoat.pages.dev, scrapegoat.io, localhost:3000)
+- Defense Layer 2 — Turnstile verification: validates one-time bot-check token via Cloudflare Turnstile server-side API, rejects missing/invalid/replayed tokens with 403
+- Defense Layer 3 — Rate limiting via Workers KV: per-IP (10/hour, 20/day) and global (500/day) counters with automatic TTL expiry, user-friendly 429/503 messages noting saved templates still work
+- Defense Layer 4 — Payload validation: calendarText required (50–30,000 chars), action must be `initial_analysis` or `correction`, max body 100 KB
+- Defense Layer 5 — Request deduplication: SHA-256 hash of calendarText + IP cached in KV (1 hr TTL), duplicate requests return cached Gemini response instantly with `X-ScrapeGoat-Cache: hit`
+- System prompt hardcoded in Worker (never from client): strict JSON-only calendar analyzer with anti-hallucination rules, `unrecognized_format` error for non-calendar input
+- Gemini request builder: `system_instruction` + user prompt with `responseMimeType: application/json`, 30-second timeout with AbortController
+- Gemini response extraction: unwraps `candidates[0].content.parts[0].text`, parses JSON, returns 502 on malformed/missing content
+- CORS support: preflight OPTIONS handler, per-origin `Access-Control-Allow-Origin`, POST + OPTIONS methods
+- Rate limit counter increment after successful requests (non-blocking, parallel with dedup cache write)
+- `wrangler.toml` configuration: KV namespace binding, env var placeholders for secrets
+- 66 new tests: 3 SHA-256, 3 origin validation, 6 Turnstile verification, 6 rate limiting, 3 counter increment, 11 payload validation, 4 dedup cache, 8 Gemini proxy, 3 CORS helpers, 1 system prompt, 12 full integration (total project: 460)
+
+### Fixed (Chunk 9 Critic Review)
+- Body size check now reads actual body bytes instead of trusting spoofable Content-Length header
+- Dedup cache key now includes action type — same text with `initial_analysis` vs `correction` no longer collides
+- Turnstile verification fails closed (rejects with 403) when Turnstile API is unreachable, instead of crashing
+- KV failures in rate limiting and dedup gracefully degrade (skip check) instead of returning 500
+- Gemini error messages no longer leak upstream status codes (generic "AI service error" instead)
+- CORS `Access-Control-Allow-Origin` header omitted entirely for disallowed origins instead of empty string
+- 405 Method Not Allowed response now includes CORS headers
+
 ### Added (Chunk 8: AI Wizard Mock)
 - Wizard state machine (`useWizardReducer`): full step navigation, answer collection, correction flow, cancel dialog, retry/start-over, with 6 quiz steps + review + correction + save + failure
 - Mock AI service (`mockAiService`): `analyzeDocument()` returns structure/date/location/status/name analysis with text-based heuristics; `getCorrectionSuggestions()` returns field alternatives; `__simulateError` param for testing graceful degradation

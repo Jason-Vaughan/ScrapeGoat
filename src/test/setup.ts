@@ -19,17 +19,20 @@ if (typeof globalThis.DOMMatrix === 'undefined') {
 
 /**
  * Mock window.matchMedia for jsdom (not natively supported).
+ * Guard: skip when running in node environment (e.g. Worker tests).
  */
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: (query: string) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: () => {},
-    removeListener: () => {},
-    addEventListener: () => {},
-    removeEventListener: () => {},
-    dispatchEvent: () => false,
-  }),
-})
+if (typeof window !== 'undefined') {
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: (query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    }),
+  })
+}
