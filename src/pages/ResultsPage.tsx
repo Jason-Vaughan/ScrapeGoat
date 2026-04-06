@@ -140,7 +140,7 @@ export function ResultsPage() {
 
   if (parseError) {
     return (
-      <div className="mx-auto max-w-lg py-16 text-center">
+      <div className="mx-auto max-w-lg py-16 text-center" role="alert">
         <h1 className="mb-2 font-heading text-2xl font-bold text-primary">Parse Error</h1>
         <p className="mb-4 text-on-surface-muted">{parseError}</p>
         <button
@@ -160,6 +160,7 @@ export function ResultsPage() {
 
   return (
     <div className="mx-auto max-w-5xl py-8">
+      <h1 className="sr-only">Parsed Event Results</h1>
       {/* Header */}
       <div className="mb-6">
         <p className="text-sm text-on-surface-muted">
@@ -174,14 +175,14 @@ export function ResultsPage() {
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <button
           type="button"
-          className="rounded-lg border border-on-surface-muted/20 px-3 py-1.5 text-xs font-medium hover:bg-surface-dim"
+          className="rounded-lg border border-on-surface-muted/20 px-3 py-2 text-xs font-medium hover:bg-surface-dim"
           onClick={() => dispatch({ type: 'SELECT_ALL_EVENTS' })}
         >
           Select All
         </button>
         <button
           type="button"
-          className="rounded-lg border border-on-surface-muted/20 px-3 py-1.5 text-xs font-medium hover:bg-surface-dim"
+          className="rounded-lg border border-on-surface-muted/20 px-3 py-2 text-xs font-medium hover:bg-surface-dim"
           onClick={() => dispatch({ type: 'SELECT_NONE_EVENTS' })}
         >
           Select None
@@ -208,7 +209,7 @@ export function ResultsPage() {
           <button
             key={key}
             type="button"
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+            className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
               visibleColumns.has(key)
                 ? 'bg-primary text-white'
                 : 'bg-on-surface-muted/10 text-on-surface-muted hover:bg-on-surface-muted/20'
@@ -314,7 +315,7 @@ export function ResultsPage() {
       )}
 
       {/* Selection count and actions */}
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+      <div className="mt-6 flex flex-col items-stretch gap-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-on-surface-muted">
           {selectedCount} of {totalCount} events selected
         </p>
@@ -383,10 +384,10 @@ function EventRow({
           />
         </td>
         <td className="px-3 py-2 text-xs text-on-surface-muted">{index}</td>
-        <td className="px-3 py-2">
+        <td className="max-w-xs px-3 py-2">
           <button
             type="button"
-            className="text-left font-medium text-on-surface hover:text-primary hover:underline"
+            className="truncate text-left font-medium text-on-surface hover:text-primary hover:underline"
             onClick={onToggleExpand}
             aria-expanded={isExpanded}
           >

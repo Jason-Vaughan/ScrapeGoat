@@ -51,6 +51,12 @@ vi.mock('../services/communityTemplates', () => ({
   searchCommunityTemplates: vi.fn().mockReturnValue([]),
 }))
 
+import * as onlineStatusModule from '../hooks/useOnlineStatus'
+
+vi.mock('../hooks/useOnlineStatus', () => ({
+  useOnlineStatus: vi.fn().mockReturnValue({ wizardAvailable: true }),
+}))
+
 describe('TemplateSelectionPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -181,5 +187,13 @@ describe('TemplateSelectionPage', () => {
     expect(screen.getByText('Share to Community')).toBeInTheDocument()
     expect(screen.getByText('Copy JSON')).toBeInTheDocument()
     expect(screen.getByText('Open GitHub Issue')).toBeInTheDocument()
+  })
+
+  it('hides wizard CTA and shows unavailable message when offline', () => {
+    vi.mocked(onlineStatusModule.useOnlineStatus).mockReturnValue({ wizardAvailable: false })
+    renderPage()
+    expect(screen.queryByText('Start Template Wizard')).not.toBeInTheDocument()
+    expect(screen.getByText('Template Wizard unavailable')).toBeInTheDocument()
+    expect(screen.getByText(/requires an internet connection/)).toBeInTheDocument()
   })
 })

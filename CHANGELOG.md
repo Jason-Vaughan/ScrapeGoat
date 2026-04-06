@@ -2,7 +2,36 @@
 
 All notable changes to ScrapeGoat are documented in this file.
 
-## [Unreleased]
+## [1.0.0] - 2026-04-05
+
+### Added (Chunk 11: PWA, Polish & Docs)
+- Service worker (`public/sw.js`): caches app shell for offline use — network-first for navigation, cache-first for static assets, network-only for `/api/*` calls
+- Service worker registration (`serviceWorkerRegistration.ts`): registers in production only, graceful no-op when unsupported
+- PWA install prompt: `useInstallPrompt` hook captures `beforeinstallprompt` event; `InstallBanner` component shows fixed bottom bar with Install/Not now buttons, degrades gracefully on Safari/Firefox
+- Offline mode detection: `useOnlineStatus` hook probes `/api/analyze` on mount, listens for online/offline events; "Create New Template" section hidden when proxy unreachable, replaced with "Template Wizard unavailable" message
+- Focus trap utility: `useFocusTrap` hook traps Tab/Shift+Tab within dialog, restores focus to trigger element on close — applied to Share to Community modal and Wizard Cancel dialog
+- Full `README.md`: 10 sections per spec — narrative intro, how it works, features with `<details>` dropdowns, quick start, community templates, privacy statement, contributing link, license
+- Full `CONTRIBUTING.md`: 7 sections per spec — welcome, code contributions (fork/branch/PR workflow), template contributions (6-step guide), bug reports, feature requests, development setup (prerequisites, env vars, proxy explanation, test commands), code style conventions
+- 21 new tests: `useInstallPrompt` (5), `InstallBanner` (4), `serviceWorkerRegistration` (3), `useOnlineStatus` (5), `useFocusTrap` (4) — total project: 537
+
+### Fixed (Chunk 11: Responsive Polish)
+- Touch targets increased on Select All/Select None buttons, column toggle pills, and template action buttons (Download/Share/Delete) with added padding and hover states
+- Event names in results table truncated with `max-w-xs truncate` to prevent horizontal overflow
+- PDF filename in template selection banner uses `break-all` to handle long filenames
+- Bottom action bar (New PDF / Export) stacks vertically on mobile (`flex-col sm:flex-row`)
+- Export page header stacks vertically on mobile
+- Share to Community modal uses full width on mobile (`w-full mx-2 sm:mx-4`)
+- Install banner stacks vertically on mobile with proper alignment
+- Template action buttons (Download/Share/Delete) now have padding and hover states for easier tapping
+
+### Fixed (Chunk 11: Accessibility Audit)
+- Focus trap implemented in Share to Community modal and Wizard Cancel dialog — Tab/Shift+Tab no longer escapes to content behind
+- Focus restored to trigger element when modals close
+- Escape key dismisses Wizard Cancel dialog
+- Added screen-reader-only `<h1>` ("Parsed Event Results") to ResultsPage for heading hierarchy
+- Parse error container now has `role="alert"` for screen reader announcement
+- Export format cards have visible focus outline (`focus:outline-2 focus:outline-primary`)
+- Export Back button: arrow wrapped in `aria-hidden` span, button has `aria-label="Back to results"`
 
 ### Added (Chunk 10: Real Gemini Integration)
 - Real AI service (`aiService.ts`): replaces mock service, calls Cloudflare Worker proxy at `/api/analyze` for both `initial_analysis` and `correction` actions

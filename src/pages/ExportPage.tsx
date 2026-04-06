@@ -156,7 +156,7 @@ function ExportPageContent({
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-heading text-2xl font-bold">
             Export {selectedEvents.length} event{selectedEvents.length !== 1 ? 's' : ''}
@@ -165,8 +165,9 @@ function ExportPageContent({
         <button
           className="rounded border border-on-surface/20 px-3 py-1.5 text-sm hover:bg-surface-alt"
           onClick={() => navigate('/results')}
+          aria-label="Back to results"
         >
-          ← Back
+          <span aria-hidden="true">←</span> Back
         </button>
       </div>
 
@@ -178,7 +179,7 @@ function ExportPageContent({
             key={card.id}
             onClick={() => setFormat(card.id)}
             aria-pressed={format === card.id}
-            className={`rounded-lg border-2 p-4 text-center transition-colors ${
+            className={`rounded-lg border-2 p-4 text-center transition-colors focus:outline-2 focus:outline-offset-2 focus:outline-primary ${
               format === card.id
                 ? 'border-primary bg-primary/10'
                 : 'border-on-surface/20 hover:border-on-surface/40'

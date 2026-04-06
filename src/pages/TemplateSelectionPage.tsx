@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ChangeEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppContext } from '../context/AppContext'
+import { useOnlineStatus } from '../hooks/useOnlineStatus'
+import { useFocusTrap } from '../hooks/useFocusTrap'
 import {
   listTemplates,
   deleteTemplate,
@@ -28,6 +30,7 @@ const GITHUB_ISSUE_URL =
 export function TemplateSelectionPage() {
   const { state, dispatch } = useAppContext()
   const navigate = useNavigate()
+  const { wizardAvailable } = useOnlineStatus()
 
   // Redirect to home if no PDF data loaded
   useEffect(() => {
@@ -53,6 +56,7 @@ export function TemplateSelectionPage() {
   // Share modal
   const [shareTemplate, setShareTemplate] = useState<ProfileTemplate | null>(null)
   const [copied, setCopied] = useState(false)
+  const shareTrapRef = useFocusTrap(shareTemplate !== null)
 
   // Load saved templates on mount
   useEffect(() => {
@@ -181,7 +185,7 @@ export function TemplateSelectionPage() {
         <span className="font-medium text-green-700 dark:text-green-400">
           PDF loaded:
         </span>{' '}
-        <span className="text-on-surface">
+        <span className="break-all text-on-surface">
           &ldquo;{fileName}&rdquo; ({lineCount} lines, {pageCount}{' '}
           {pageCount === 1 ? 'page' : 'pages'})
         </span>
@@ -263,7 +267,7 @@ export function TemplateSelectionPage() {
                   </label>
                   <button
                     type="button"
-                    className="text-xs text-on-surface-muted hover:text-primary"
+                    className="rounded px-2 py-1.5 text-xs text-on-surface-muted hover:bg-surface-dim hover:text-primary transition-colors"
                     onClick={() => handleDownloadSaved(saved.id)}
                     aria-label={`Download ${saved.template.name}`}
                   >
@@ -271,7 +275,7 @@ export function TemplateSelectionPage() {
                   </button>
                   <button
                     type="button"
-                    className="text-xs text-on-surface-muted hover:text-primary"
+                    className="rounded px-2 py-1.5 text-xs text-on-surface-muted hover:bg-surface-dim hover:text-primary transition-colors"
                     onClick={() => handleShareToCommunity(saved.id)}
                     aria-label={`Share ${saved.template.name}`}
                   >
@@ -279,7 +283,7 @@ export function TemplateSelectionPage() {
                   </button>
                   <button
                     type="button"
-                    className="text-xs text-on-surface-muted hover:text-primary"
+                    className="rounded px-2 py-1.5 text-xs text-on-surface-muted hover:bg-surface-dim hover:text-primary transition-colors"
                     onClick={() => handleDeleteSaved(saved.id)}
                     aria-label={`Delete ${saved.template.name}`}
                   >
@@ -384,22 +388,34 @@ export function TemplateSelectionPage() {
         )}
       </section>
 
-      {/* Section 3: Create new template */}
-      <section className="rounded-xl border border-on-surface-muted/20 bg-surface-dim p-5">
-        <h2 className="mb-2 font-heading text-lg font-semibold">
-          Create a new template
-        </h2>
-        <p className="mb-3 text-sm text-on-surface-muted">
-          Our AI assistant will help you build one in about 2 minutes.
-        </p>
-        <button
-          type="button"
-          className="rounded-lg bg-secondary px-4 py-2 text-sm font-medium text-white"
-          onClick={() => navigate('/wizard')}
-        >
-          Start Template Wizard
-        </button>
-      </section>
+      {/* Section 3: Create new template (hidden when proxy is unreachable) */}
+      {wizardAvailable ? (
+        <section className="rounded-xl border border-on-surface-muted/20 bg-surface-dim p-5">
+          <h2 className="mb-2 font-heading text-lg font-semibold">
+            Create a new template
+          </h2>
+          <p className="mb-3 text-sm text-on-surface-muted">
+            Our AI assistant will help you build one in about 2 minutes.
+          </p>
+          <button
+            type="button"
+            className="rounded-lg bg-secondary px-4 py-2 text-sm font-medium text-white"
+            onClick={() => navigate('/wizard')}
+          >
+            Start Template Wizard
+          </button>
+        </section>
+      ) : (
+        <section className="rounded-xl border border-on-surface-muted/20 bg-surface-dim p-5">
+          <h2 className="mb-2 font-heading text-lg font-semibold text-on-surface-muted">
+            Template Wizard unavailable
+          </h2>
+          <p className="text-sm text-on-surface-muted">
+            The AI template wizard requires an internet connection. You can still
+            use saved templates, browse community templates, or import a .json file.
+          </p>
+        </section>
+      )}
 
       {/* Back to start link */}
       <div className="mt-6 text-center">
@@ -429,8 +445,8 @@ export function TemplateSelectionPage() {
           }}
         >
           <div
-            ref={(el) => el?.querySelector('button')?.focus()}
-            className="mx-4 max-w-md rounded-xl bg-surface p-6 shadow-xl"
+            ref={shareTrapRef}
+            className="mx-2 w-full max-w-md rounded-xl bg-surface p-5 shadow-xl sm:mx-4 sm:p-6"
             onClick={(e) => e.stopPropagation()}>
             <h3 className="mb-3 font-heading text-lg font-semibold">
               Share to Community

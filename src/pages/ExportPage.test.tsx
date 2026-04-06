@@ -163,7 +163,7 @@ describe('ExportPage', () => {
 
   it('shows back button that navigates to results', async () => {
     renderPage()
-    const backBtn = screen.getByText('← Back')
+    const backBtn = screen.getByRole('button', { name: 'Back to results' })
     await userEvent.click(backBtn)
     expect(mockNavigate).toHaveBeenCalledWith('/results')
   })

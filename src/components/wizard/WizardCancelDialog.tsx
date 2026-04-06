@@ -1,3 +1,5 @@
+import { useFocusTrap } from '../../hooks/useFocusTrap'
+
 interface WizardCancelDialogProps {
   open: boolean
   onStay: () => void
@@ -6,13 +8,15 @@ interface WizardCancelDialogProps {
 
 /**
  * Modal confirmation dialog shown when the user tries to cancel the wizard.
- * Warns that progress will be lost.
+ * Warns that progress will be lost. Focus is trapped within while open.
  */
 export function WizardCancelDialog({
   open,
   onStay,
   onLeave,
 }: WizardCancelDialogProps) {
+  const trapRef = useFocusTrap(open)
+
   if (!open) return null
 
   return (
@@ -21,8 +25,11 @@ export function WizardCancelDialog({
       role="dialog"
       aria-modal="true"
       aria-labelledby="cancel-dialog-title"
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') onStay()
+      }}
     >
-      <div className="mx-4 w-full max-w-md rounded-xl bg-surface p-6 shadow-xl">
+      <div ref={trapRef} className="mx-4 w-full max-w-md rounded-xl bg-surface p-6 shadow-xl">
         <h3
           id="cancel-dialog-title"
           className="font-heading text-lg font-semibold text-on-surface"

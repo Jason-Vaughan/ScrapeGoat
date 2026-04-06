@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom'
 import { Header } from './Header'
 import { Footer } from './Footer'
+import { InstallBanner } from './InstallBanner'
 
 interface LayoutProps {
   theme: 'light' | 'dark'
@@ -22,6 +23,7 @@ export function Layout({ theme, onToggleTheme }: LayoutProps) {
         <Outlet />
       </main>
       <Footer />
+      <InstallBanner />
     </div>
   )
 }
