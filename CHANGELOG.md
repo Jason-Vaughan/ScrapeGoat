@@ -4,6 +4,32 @@ All notable changes to ScrapeGoat are documented in this file.
 
 ## [Unreleased]
 
+### Added (Chunk 6: Results UI)
+- Parsed Results screen (Screen 4) with event table, checkboxes for selection, and responsive card layout on mobile
+- Column toggle pills: Start, End, Move-In, Move-Out, Status — click to show/hide columns
+- Date range dropdown filter: All dates, Next 30/90/180/365 days
+- Warning icon on events with parse warnings — click event name to expand detail view
+- Warning detail panel: field, issue, raw value, suggestion, and [Accept] button to apply fix
+- Raw PDF text display in expanded event detail
+- Select All / Select None buttons
+- Event count summary ("X of Y events selected")
+- "Export Selected Events" button (navigates to export screen, disabled when none selected)
+- "New PDF" button (clears state and returns to landing page)
+- AppContext extended: `parsedEvents` state with `SET_PARSED_EVENTS`, `TOGGLE_EVENT`, `SELECT_ALL_EVENTS`, `SELECT_NONE_EVENTS`, `ACCEPT_SUGGESTION` actions
+- `appReducer` and `AppAction` exported for direct unit testing
+- Automatic parser invocation: runs `parseText` when ResultsPage loads with PDF + template
+- 25 new ResultsPage unit tests: redirects, rendering, selection, column toggles, date filter, warning display, expand/collapse, navigation, accessibility
+- 13 new AppContext reducer unit tests: SET_PARSED_EVENTS, TOGGLE_EVENT, SELECT_ALL, SELECT_NONE, ACCEPT_SUGGESTION (including allowlist, out-of-bounds, and structural field overwrite protection)
+
+### Fixed (Chunk 6 Critic Review)
+- Add field allowlist to ACCEPT_SUGGESTION reducer — only `name`, `startDate`, `endDate`, `moveInDate`, `moveOutDate`, `location`, `status` can be overwritten (prevents structural field injection)
+- Fix `isWithinDays` timezone handling — parse ISO dates as local time to avoid UTC midnight offset errors
+- Prevent parser re-trigger loop when parse result is empty — use `hasParsed` flag instead of checking `parsedEvents.length`
+- Fix expanded row `colSpan` calculation (was 1 short, causing misaligned detail rows)
+- Add `role="img"` to warning icon `<span>` so `aria-label` is valid per ARIA spec
+- Add `aria-expanded` attribute to event name expand/collapse buttons for screen reader support
+- Update App.test routing test for ResultsPage redirect behavior (no longer renders placeholder heading)
+
 ### Added (Chunk 5: Parser Engine)
 - `ParsedEvent` and `ParseWarning` interfaces matching spec 5.2
 - `parseText(text, template)` main entry point dispatching by structure type

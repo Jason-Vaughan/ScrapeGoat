@@ -97,9 +97,10 @@ describe('Routing', () => {
     expect(screen.getByRole('heading', { name: /configure extraction/i })).toBeInTheDocument()
   })
 
-  it('renders results page at /results', () => {
+  it('redirects results page to home when no PDF data is loaded', () => {
     renderApp(['/results'])
-    expect(screen.getByRole('heading', { name: /extracted events/i })).toBeInTheDocument()
+    // ResultsPage redirects to / when state is empty, so we see the home page
+    expect(screen.getByRole('heading', { name: /scrapegoat/i })).toBeInTheDocument()
   })
 
   it('renders export page at /export', () => {
