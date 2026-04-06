@@ -13,8 +13,11 @@
 </p>
 
 <p align="center">
+  <img src="https://img.shields.io/badge/status-beta-orange.svg" alt="Beta">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
 </p>
+
+> **Beta Notice:** ScrapeGoat is under active development and has not been fully tested in production. Expect rough edges. Bug reports and feedback are welcome via [GitHub Issues](https://github.com/Jason-Vaughan/ScrapeGoat/issues).
 
 ---
 
