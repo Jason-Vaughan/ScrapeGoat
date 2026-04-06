@@ -2,6 +2,12 @@
 
 All notable changes to ScrapeGoat are documented in this file.
 
+## [1.0.0-beta] - 2026-04-05
+
+### Changed
+- Added beta badge and notice to README
+- Repo description updated with [BETA] prefix
+
 ## [1.0.0] - 2026-04-05
 
 ### Added (Chunk 11: PWA, Polish & Docs)
